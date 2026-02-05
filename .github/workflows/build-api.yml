@@ -1,0 +1,102 @@
+name: Build EVERSE Unified API
+
+on:
+  schedule:
+    # Run every 6 hours (0:00, 6:00, 12:00, 18:00 UTC)
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/**"
+      - "requirements.txt"
+      - ".github/workflows/build-api.yml"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-deploy:
+    name: Build and Deploy API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate API
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/generate_api.py --verbose
+
+      - name: Validate Deployment
+        run: |
+          python scripts/validate_deployment.py
+
+      - name: Validate API
+        run: |
+          ls -la api/v1/
+          ls -la api/v1/indicators/ | head -5
+          ls -la api/v1/tools/ | head -5
+
+      - name: Upload API artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: api-build
+          path: api/v1/
+          retention-days: 30
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Commit and push API
+        run: |
+          git add api/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: auto-generate API [skip ci]"
+            git push origin main
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Deploy to GitHub Pages
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: "api/v1"
+
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+
+      - name: Create GitHub Issue on failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `⚠️ API Build Failed - ${new Date().toISOString()}`,
+              body: `The automated API generation failed. Please check the [workflow logs](${context.server_url}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+            })
