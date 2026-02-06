@@ -404,29 +404,33 @@ def generate_dashboard() -> None:
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">API Status</span>
-                            <span class="metric-value" style="font-size: 1.2em;">${data.components.api}</span>
+                            <span class="metric-value" style="font-size: 1.2em;">${data.components.api.status}</span>
                         </div>
                     </div>
                 `;
 
                 // Update components
+                const apiStatus = data.components.api.status === 'healthy' ? 'healthy' : 'unhealthy';
+                const dataStatus = data.components.data.status === 'healthy' ? 'healthy' : 'unhealthy';
+                const relStatus = data.components.relationships.status === 'healthy' ? 'healthy' : 'unhealthy';
+                
                 document.getElementById('components-content').innerHTML = `
                     <div class="metric-row">
                         <span class="metric-label">API Core</span>
-                        <span class="status-badge ${data.components.api === 'healthy' ? 'healthy' : 'unhealthy'}">
-                            ${data.components.api}
+                        <span class="status-badge ${apiStatus}">
+                            ${data.components.api.status}
                         </span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Data Sources</span>
-                        <span class="status-badge ${data.components.data_sources === 'healthy' ? 'healthy' : 'unhealthy'}">
-                            ${data.components.data_sources}
+                        <span class="status-badge ${dataStatus}">
+                            ${data.components.data.status}
                         </span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Relationships</span>
-                        <span class="status-badge ${data.components.relationships === 'healthy' ? 'healthy' : 'unhealthy'}">
-                            ${data.components.relationships}
+                        <span class="status-badge ${relStatus}">
+                            ${data.components.relationships.status}
                         </span>
                     </div>
                 `;
@@ -442,47 +446,47 @@ def generate_dashboard() -> None:
 
         async function loadStatus() {
             try {
-                const response = await fetch('./status.json');
-                if (!response.ok) throw new Error('Failed to fetch status');
-                
-                const data = await response.json();
+                const healthResponse = await fetch('./health.json');
+                if (!healthResponse.ok) throw new Error('Failed to fetch health');
+                const healthData = await healthResponse.json();
 
-                // Update metrics
+                // Update metrics from health.json
                 document.getElementById('metrics-content').innerHTML = `
                     <div class="metric-row">
                         <span class="metric-label">Indicators</span>
-                        <span class="metric-value">${data.metrics.indicators}</span>
+                        <span class="metric-value">${healthData.components.data.indicators}</span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Tools</span>
-                        <span class="metric-value">${data.metrics.tools}</span>
+                        <span class="metric-value">${healthData.components.data.tools}</span>
                     </div>
                     <div class="metric-row">
                         <span class="metric-label">Dimensions</span>
-                        <span class="metric-value">${data.metrics.dimensions}</span>
+                        <span class="metric-value">${healthData.components.data.dimensions}</span>
                     </div>
                     <div class="metric-row">
-                        <span class="metric-label">Relationships</span>
-                        <span class="metric-value">${data.metrics.relationships}</span>
+                        <span class="metric-label">Total Endpoints</span>
+                        <span class="metric-value">${healthData.metrics.total_endpoints}</span>
                     </div>
                 `;
 
                 // Update features
-                if (data.features) {
-                    const featuresList = Object.entries(data.features)
-                        .map(([key, value]) => {
-                            const className = value ? '' : 'disabled';
-                            const label = key.replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase());
-                            return `<li class="${className}">${label}</li>`;
-                        })
-                        .join('');
-                    
-                    document.getElementById('features-content').innerHTML = 
-                        `<ul class="feature-list">${featuresList}</ul>`;
-                } else {
-                    document.getElementById('features-content').innerHTML = 
-                        '<p style="color: #999; text-align: center;">No feature data available</p>';
-                }
+                const features = [
+                    { name: 'Pagination', value: healthData.metrics.pagination },
+                    { name: 'HATEOAS', value: healthData.metrics.hateoas },
+                    { name: 'JSON-LD', value: healthData.metrics.json_ld },
+                    { name: 'OpenAPI 3.0', value: healthData.metrics.openapi_3_0 }
+                ];
+                
+                const featuresList = features
+                    .map(f => {
+                        const className = f.value ? '' : 'disabled';
+                        return `<li class="${className}">✅ ${f.name}</li>`;
+                    })
+                    .join('');
+                
+                document.getElementById('features-content').innerHTML = 
+                    `<ul class="feature-list">${featuresList}</ul>`;
 
             } catch (error) {
                 document.getElementById('metrics-content').innerHTML = 
