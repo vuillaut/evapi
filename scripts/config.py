@@ -43,7 +43,7 @@ for directory in [DATA_DIR, API_DIR, CACHE_DIR]:
 
 # API Configuration
 API_VERSION = "v1"
-API_BASE_URL = "https://everse.software/api/v1"
+API_BASE_URL = os.getenv("API_BASE_URL", "https://vuillaut.github.io/evapi/api/v1")
 API_CONTEXT = "https://w3id.org/everse/api/v1/context.jsonld"
 
 # GitHub configuration

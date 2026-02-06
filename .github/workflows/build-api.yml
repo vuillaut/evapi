@@ -42,6 +42,7 @@ jobs:
       - name: Generate API
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          API_BASE_URL: https://vuillaut.github.io/evapi/api/v1
         run: |
           python scripts/generate_api.py --verbose
 
