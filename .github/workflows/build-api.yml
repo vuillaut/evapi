@@ -62,21 +62,6 @@ jobs:
           path: api/v1/
           retention-days: 30
 
-      - name: Configure Git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-      - name: Commit and push API
-        run: |
-          git add api/
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: auto-generate API [skip ci]"
-            git push origin main
-          fi
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
