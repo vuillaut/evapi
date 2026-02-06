@@ -48,6 +48,11 @@ python generate_api.py
 pytest tests/ --cov=scripts
 ```
 
+## Client SDKs
+
+- Python client: [clients/python](clients/python)
+- JavaScript client: [clients/javascript](clients/javascript)
+
 ## License
 
 Apache 2.0

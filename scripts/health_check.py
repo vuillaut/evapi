@@ -521,7 +521,7 @@ def generate_dashboard() -> None:
 def generate_landing_page() -> None:
     """Generate the main landing page/index."""
     stats = get_api_stats()
-    
+
     landing_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -759,6 +759,7 @@ def generate_landing_page() -> None:
             <li><a href="#endpoints">📍 Endpoints</a></li>
             <li><a href="#features">⭐ Features</a></li>
             <li><a href="./dashboard.html">📊 Dashboard</a></li>
+            <li><a href="./relationships/graph.html">🧭 Graph</a></li>
             <li><a href="./openapi.json" target="_blank">📖 OpenAPI Spec</a></li>
             <li><a href="https://github.com/vuillaut/evapi" target="_blank">💻 GitHub</a></li>
         </ul>
@@ -776,17 +777,17 @@ def generate_landing_page() -> None:
             <div class="stats">
                 <div class="stat-card">
                     <h3>📈 Indicators</h3>
-                    <div class="stat-number">{stats['indicators']}</div>
+                    <div class="stat-number">{stats["indicators"]}</div>
                     <p>Quality indicators</p>
                 </div>
                 <div class="stat-card">
                     <h3>🔧 Tools</h3>
-                    <div class="stat-number">{stats['tools']}</div>
+                    <div class="stat-number">{stats["tools"]}</div>
                     <p>Software tools</p>
                 </div>
                 <div class="stat-card">
                     <h3>📐 Dimensions</h3>
-                    <div class="stat-number">{stats['dimensions']}</div>
+                    <div class="stat-number">{stats["dimensions"]}</div>
                     <p>Quality dimensions</p>
                 </div>
             </div>
@@ -817,7 +818,7 @@ def generate_landing_page() -> None:
                 <div class="endpoint-card">
                     <h3>🔗 Relationships</h3>
                     <p>View relationships between indicators, tools, and dimensions.</p>
-                    <a href="./relationships/" class="endpoint-link">View Graph</a>
+                    <a href="./relationships/graph.html" class="endpoint-link">Open Graph Viewer</a>
                 </div>
                 
                 <div class="endpoint-card">
@@ -908,20 +909,21 @@ curl https://vuillaut.github.io/evapi/health.json | jq
             <strong>EVERSE Unified API</strong> | 
             <a href="https://github.com/vuillaut/evapi">GitHub Repository</a> | 
             <a href="./openapi.json">OpenAPI Specification</a> | 
-            <a href="./dashboard.html">Status Dashboard</a>
+            <a href="./dashboard.html">Status Dashboard</a> | 
+            <a href="./relationships/graph.html">Graph Viewer</a>
         </p>
         <p style="margin-top: 10px; font-size: 0.9em;">
-            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+            Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")} UTC
         </p>
     </footer>
 </body>
 </html>"""
-    
+
     # Write landing page
     landing_file = API_DIR / "index.html"
     with open(landing_file, "w", encoding="utf-8") as f:
         f.write(landing_html)
-    
+
     print(f"✓ Generated landing page: {landing_file}")
 
 

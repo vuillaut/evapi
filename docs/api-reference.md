@@ -192,7 +192,6 @@ Get detailed information about a specific dimension.
 Get the complete knowledge graph of all relationships.
 
 **Query Parameters:**
-- `format` (string) - Output format: json (default), graphviz, cypher
 - `depth` (integer) - Relationship depth (default: 2)
 
 **Response:**
@@ -217,6 +216,12 @@ Get the complete knowledge graph of all relationships.
   ]
 }
 ```
+
+### Relationship Graph Visualization
+
+**GET** `/relationships/graph.html`
+
+Interactive Graphviz-based visualization rendered entirely in the browser (static GitHub Pages compatible).
 
 ## Response Format
 

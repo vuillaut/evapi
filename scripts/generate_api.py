@@ -403,6 +403,199 @@ def generate_relationships_graph(builder: RelationshipBuilder) -> None:
 
     logger.info(f"✓ Generated relationships graph: {output_file}")
 
+    graph_html = """<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
+    <title>EVERSE Relationship Graph</title>
+    <style>
+        body {{
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f6f7fb;
+            color: #1f2937;
+        }}
+        header {{
+            padding: 20px 24px;
+            background: #111827;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }}
+        header h1 {{
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }}
+        header .actions {{
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }}
+        header button {{
+            background: #6366f1;
+            border: none;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }}
+        header a {{
+            color: #93c5fd;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }}
+        #status {{
+            margin: 16px 24px;
+            padding: 12px 16px;
+            background: #fff7ed;
+            border-left: 4px solid #f97316;
+            border-radius: 8px;
+            display: none;
+        }}
+        #graph-container {{
+            margin: 0 24px 24px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            overflow: auto;
+            min-height: 70vh;
+        }}
+        #graph-container svg {{
+            width: 100%;
+            height: auto;
+        }}
+        .legend {{
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 24px;
+        }}
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }}
+        .dot {{
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }}
+    </style>
+    <script src=\"https://unpkg.com/viz.js@2.1.2/viz.js\"></script>
+    <script src=\"https://unpkg.com/viz.js@2.1.2/full.render.js\"></script>
+</head>
+<body>
+    <header>
+        <h1>EVERSE Relationship Graph</h1>
+        <div class=\"actions\">
+            <button id=\"reload\">Reload graph</button>
+            <a href=\"graph.json\" target=\"_blank\" rel=\"noreferrer\">View JSON</a>
+            <a href=\"__API_BASE_URL__/\" target=\"_blank\" rel=\"noreferrer\">API Root</a>
+        </div>
+    </header>
+
+    <div class=\"legend\">
+        <div class=\"legend-item\"><span class=\"dot\" style=\"background:#60a5fa;\"></span>Indicators</div>
+        <div class=\"legend-item\"><span class=\"dot\" style=\"background:#34d399;\"></span>Tools</div>
+        <div class=\"legend-item\"><span class=\"dot\" style=\"background:#fbbf24;\"></span>Dimensions</div>
+    </div>
+
+    <div id=\"status\"></div>
+    <div id=\"graph-container\">Loading graph...</div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const graphContainer = document.getElementById('graph-container');
+
+        const COLORS = {
+            Indicator: '#60a5fa',
+            Tool: '#34d399',
+            Dimension: '#fbbf24',
+        };
+
+        function escapeDot(value) {
+            return String(value || '')
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"');
+        }
+
+        function buildDot(graph) {
+            const lines = [];
+            lines.push('digraph EVERSE {');
+            lines.push('  rankdir=LR;');
+            lines.push('  graph [splines=true, overlap=false, bgcolor="transparent"];');
+            lines.push('  node [fontname="Inter, Arial", style=filled, shape=box, color="#475569"];');
+            lines.push('  edge [fontname="Inter, Arial", color="#94a3b8", arrowsize=0.7];');
+
+            function addNodes(nodes, type) {
+                Object.entries(nodes || {}).forEach(([id, node]) => {
+                    const label = node.name || node.id || id;
+                    const fill = COLORS[type] || '#e2e8f0';
+                    lines.push(`  "${escapeDot(id)}" [label="${escapeDot(label)}", fillcolor="${fill}"];`);
+                });
+            }
+
+            addNodes(graph.nodes?.indicators, 'Indicator');
+            addNodes(graph.nodes?.tools, 'Tool');
+            addNodes(graph.nodes?.dimensions, 'Dimension');
+
+            (graph.edges || []).forEach((edge) => {
+                const label = edge.relationship_type || '';
+                lines.push(`  "${escapeDot(edge.source_id)}" -> "${escapeDot(edge.target_id)}" [label="${escapeDot(label)}"];`);
+            });
+
+            lines.push('}');
+            return lines.join('\n');
+        }
+
+        async function renderGraph() {
+            statusEl.style.display = 'none';
+            graphContainer.textContent = 'Loading graph...';
+            try {
+                const response = await fetch('graph.json', { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch graph.json (${response.status})`);
+                }
+                const graph = await response.json();
+                const dot = buildDot(graph);
+                const viz = new Viz();
+                const svg = await viz.renderSVGElement(dot);
+                graphContainer.innerHTML = '';
+                graphContainer.appendChild(svg);
+            } catch (error) {
+                statusEl.textContent = error.message;
+                statusEl.style.display = 'block';
+                graphContainer.textContent = 'Failed to render graph.';
+            }
+        }
+
+        document.getElementById('reload').addEventListener('click', renderGraph);
+        renderGraph();
+    </script>
+</body>
+</html>
+"""
+
+    graph_html = graph_html.replace("__API_BASE_URL__", API_BASE_URL)
+
+    graph_html_file = API_DIR / "relationships" / "graph.html"
+    with open(graph_html_file, "w", encoding="utf-8") as f:
+        f.write(graph_html)
+
+    logger.info(f"✓ Generated relationship graph visualization: {graph_html_file}")
+
 
 def generate_openapi_spec(
     indicators: List[Indicator],
