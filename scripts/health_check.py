@@ -518,9 +518,417 @@ def generate_dashboard() -> None:
     print(f"✓ Generated monitoring dashboard: {dashboard_file}")
 
 
+def generate_landing_page() -> None:
+    """Generate the main landing page/index."""
+    stats = get_api_stats()
+    
+    landing_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVERSE Unified API - Software Quality Services</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }}
+        
+        header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }}
+        
+        header h1 {{
+            font-size: 3em;
+            margin-bottom: 10px;
+        }}
+        
+        header p {{
+            font-size: 1.2em;
+            opacity: 0.9;
+        }}
+        
+        nav {{
+            background: white;
+            padding: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }}
+        
+        nav ul {{
+            list-style: none;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }}
+        
+        nav li {{
+            flex: 1;
+            min-width: 150px;
+        }}
+        
+        nav a {{
+            display: block;
+            padding: 15px 20px;
+            color: #667eea;
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }}
+        
+        nav a:hover {{
+            background: #f0f0f0;
+            border-bottom-color: #667eea;
+        }}
+        
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }}
+        
+        .stats {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }}
+        
+        .stat-card {{
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }}
+        
+        .stat-card h3 {{
+            color: #667eea;
+            margin-bottom: 10px;
+        }}
+        
+        .stat-number {{
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }}
+        
+        .endpoints {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }}
+        
+        .endpoint-card {{
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }}
+        
+        .endpoint-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }}
+        
+        .endpoint-card h3 {{
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }}
+        
+        .endpoint-card p {{
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }}
+        
+        .endpoint-link {{
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }}
+        
+        .endpoint-link:hover {{
+            background: #764ba2;
+        }}
+        
+        .features {{
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            margin: 40px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }}
+        
+        .features h2 {{
+            color: #667eea;
+            margin-bottom: 20px;
+        }}
+        
+        .features ul {{
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }}
+        
+        .features li {{
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }}
+        
+        .features li::before {{
+            content: "✅";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }}
+        
+        .quick-start {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 8px;
+            margin: 40px 0;
+        }}
+        
+        .quick-start h2 {{
+            margin-bottom: 20px;
+        }}
+        
+        .code-block {{
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }}
+        
+        footer {{
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+        }}
+        
+        footer a {{
+            color: #667eea;
+            text-decoration: none;
+        }}
+        
+        footer a:hover {{
+            text-decoration: underline;
+        }}
+        
+        .section-title {{
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚀 EVERSE Unified API</h1>
+        <p>Centralized API for EVERSE Research Software Quality Services</p>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#api">📡 API</a></li>
+            <li><a href="#endpoints">📍 Endpoints</a></li>
+            <li><a href="#features">⭐ Features</a></li>
+            <li><a href="./dashboard.html">📊 Dashboard</a></li>
+            <li><a href="./openapi.json" target="_blank">📖 OpenAPI Spec</a></li>
+            <li><a href="https://github.com/vuillaut/evapi" target="_blank">💻 GitHub</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <section id="overview">
+            <div class="section-title">📊 API Overview</div>
+            <p>
+                The EVERSE Unified API provides seamless access to comprehensive research software quality data. 
+                Aggregating indicators, tools, and dimensions from multiple authoritative sources, this API empowers 
+                developers and organizations to assess and improve software quality systematically.
+            </p>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>📈 Indicators</h3>
+                    <div class="stat-number">{stats['indicators']}</div>
+                    <p>Quality indicators</p>
+                </div>
+                <div class="stat-card">
+                    <h3>🔧 Tools</h3>
+                    <div class="stat-number">{stats['tools']}</div>
+                    <p>Software tools</p>
+                </div>
+                <div class="stat-card">
+                    <h3>📐 Dimensions</h3>
+                    <div class="stat-number">{stats['dimensions']}</div>
+                    <p>Quality dimensions</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="endpoints">
+            <div class="section-title">📍 API Endpoints</div>
+            
+            <div class="endpoints">
+                <div class="endpoint-card">
+                    <h3>📈 Indicators</h3>
+                    <p>Browse and explore all software quality indicators with detailed information about each one.</p>
+                    <a href="./indicators/" class="endpoint-link">Explore Indicators</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3>🔧 Tools</h3>
+                    <p>Discover tools and frameworks for implementing software quality practices.</p>
+                    <a href="./tools/" class="endpoint-link">Explore Tools</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3>📐 Dimensions</h3>
+                    <p>Understand the various dimensions of software quality assessment.</p>
+                    <a href="./dimensions/" class="endpoint-link">Explore Dimensions</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3>🔗 Relationships</h3>
+                    <p>View relationships between indicators, tools, and dimensions.</p>
+                    <a href="./relationships/" class="endpoint-link">View Graph</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3>🏥 Health</h3>
+                    <p>Check the current health status and metrics of the API.</p>
+                    <a href="./health.json" class="endpoint-link">View Health</a>
+                </div>
+                
+                <div class="endpoint-card">
+                    <h3>📚 OpenAPI</h3>
+                    <p>Full API specification in OpenAPI 3.0 format for integration and documentation.</p>
+                    <a href="./openapi.json" class="endpoint-link">View Spec</a>
+                </div>
+            </div>
+        </section>
+        
+        <section id="features">
+            <div class="features">
+                <h2>⭐ API Features</h2>
+                <ul>
+                    <li>RESTful JSON API</li>
+                    <li>Pagination support</li>
+                    <li>HATEOAS links for navigation</li>
+                    <li>JSON-LD structured data</li>
+                    <li>OpenAPI 3.0 specification</li>
+                    <li>Comprehensive relationship graphs</li>
+                    <li>Real-time health monitoring</li>
+                    <li>Automatic updates every 6 hours</li>
+                    <li>GitHub Pages deployment</li>
+                    <li>Zero-cost infrastructure</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="quickstart">
+            <div class="quick-start">
+                <h2>🚀 Quick Start</h2>
+                <p>Get started with the API in seconds:</p>
+                
+                <h3 style="margin-top: 20px;">Get All Indicators:</h3>
+                <div class="code-block">
+curl https://vuillaut.github.io/evapi/indicators/ | jq
+                </div>
+                
+                <h3 style="margin-top: 20px;">Get All Tools:</h3>
+                <div class="code-block">
+curl https://vuillaut.github.io/evapi/tools/ | jq
+                </div>
+                
+                <h3 style="margin-top: 20px;">Get All Dimensions:</h3>
+                <div class="code-block">
+curl https://vuillaut.github.io/evapi/dimensions/ | jq
+                </div>
+                
+                <h3 style="margin-top: 20px;">Check API Health:</h3>
+                <div class="code-block">
+curl https://vuillaut.github.io/evapi/health.json | jq
+                </div>
+            </div>
+        </section>
+        
+        <section id="api">
+            <div class="section-title">📡 Using the API</div>
+            <p>
+                The API is organized into logical collections:
+            </p>
+            <ul style="margin: 20px 0; padding-left: 20px;">
+                <li><strong>Indicators</strong> - Quality metrics and assessment criteria</li>
+                <li><strong>Tools</strong> - Software and services for quality assurance</li>
+                <li><strong>Dimensions</strong> - Categories of software quality (e.g., reliability, maintainability)</li>
+                <li><strong>Relationships</strong> - Connections between all entities</li>
+            </ul>
+            
+            <p style="margin-top: 20px;">
+                All endpoints return paginated JSON responses with:
+            </p>
+            <ul style="margin: 20px 0; padding-left: 20px;">
+                <li>Items data</li>
+                <li>HATEOAS links for pagination and navigation</li>
+                <li>JSON-LD context for semantic understanding</li>
+                <li>Metadata about the collection</li>
+            </ul>
+        </section>
+    </div>
+    
+    <footer>
+        <p>
+            <strong>EVERSE Unified API</strong> | 
+            <a href="https://github.com/vuillaut/evapi">GitHub Repository</a> | 
+            <a href="./openapi.json">OpenAPI Specification</a> | 
+            <a href="./dashboard.html">Status Dashboard</a>
+        </p>
+        <p style="margin-top: 10px; font-size: 0.9em;">
+            Last updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+        </p>
+    </footer>
+</body>
+</html>"""
+    
+    # Write landing page
+    landing_file = API_DIR / "index.html"
+    with open(landing_file, "w", encoding="utf-8") as f:
+        f.write(landing_html)
+    
+    print(f"✓ Generated landing page: {landing_file}")
+
+
 if __name__ == "__main__":
     print("Generating health check and status endpoints...")
     generate_health_endpoint()
     generate_status_endpoint()
     generate_dashboard()
+    generate_landing_page()
     print("✓ Health check endpoints generated successfully!")

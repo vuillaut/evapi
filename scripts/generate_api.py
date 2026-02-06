@@ -842,10 +842,12 @@ def main(skip_cache: bool, verbose: bool) -> None:
 
         # Generate health check endpoints
         logger.info("\n6. Generating health check endpoints...")
-        from scripts.health_check import generate_health_endpoint, generate_status_endpoint
+        from scripts.health_check import generate_health_endpoint, generate_status_endpoint, generate_dashboard, generate_landing_page
 
         generate_health_endpoint()
         generate_status_endpoint()
+        generate_dashboard()
+        generate_landing_page()
 
         # Validate generated API
         logger.info("\n7. Validating generated API...")
